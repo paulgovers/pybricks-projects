@@ -6,7 +6,7 @@ Dit programma demonstreert basis DC motor besturing met de Technic Hub.
 
 from pybricks.hubs import TechnicHub
 from pybricks.pupdevices import DCMotor
-from pybricks.parameters import Port, Direction
+from pybricks.parameters import Port
 from pybricks.tools import wait
 
 # Initialiseer de Technic Hub
@@ -50,5 +50,5 @@ motor.brake()
 
 print("Programma voltooid")
 
-# Laat de hub een geluid maken om te bevestigen dat het programma klaar is
+# Laat de hub licht aangaan om te bevestigen dat het programma klaar is
 hub.light.on()
