@@ -6,8 +6,12 @@ Ik gebruik hiervoor:
 - Technic Hub
 - XBoxcontroller
 - DCMotor, dit wordt uiteindelijk de Technic Large Angular Motor (21980)
-- TODO: Een motor voor de besturing, die nog bepaald moet worden
+- Technic Grote motor 88013
 
 # Development
 Je kan je code maken dmv een webpagina https://code.pybricks.com/
 maar ik heb gekozen om code te bouwen in Visualstudio Code ( https://pybricks.com/project/pybricks-other-editors/ ), hiermee kan je ook het programma uploaden naar de Technic Hub
+
+# uploaden
+cd AutoXboxRemote\.venv\Scripts
+pybricksdev run ble .\auto-xbox-remote.py

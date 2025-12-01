@@ -1,31 +1,62 @@
 from pybricks.hubs import TechnicHub
 from pybricks.iodevices import XboxController
-from pybricks.pupdevices import DCMotor, Motor
-from pybricks.parameters import Port
+from pybricks.pupdevices import Motor
+from pybricks.parameters import Port, Button, Stop
 from pybricks.tools import wait
 
 hub = TechnicHub()
-motor = DCMotor(Port.A)          # aandrijving
-motorGroot = Motor(Port.D)       # sturen (tacho-motor)
+motorGroot = Motor(Port.D)
 
-pad = XboxController()           # pairen: controller aan, pair-knop vasthouden, dan script starten
+pad = XboxController()
 
-def throttle():
-    lt, rt = pad.triggers()      # 0..100
-    return max(-100, min(100, rt - lt))
+MAX_SPEED = 1000        # deg/s
+STEP = 20               # stapgrootte per loop als D-pad wordt vastgehouden
 
-def steering():
-    x, y = pad.joystick_right()  # -100..100 (horizontaal, verticaal)
-    # kleine deadzone tegen jitter
-    return 0 if -8 < x < 8 else x
+# offset die je met de D-pad langzaam omhoog/omlaag “sleurt”
+offset_speed = 0
 
-# optioneel: korte test van motoren
-motor.dc(100); wait(300); motor.dc(0)
-motorGroot.run_time(300, 300, wait=True)  # kleine tik, bewijst dat D-poort werkt
+
+def clamp(value, lo, hi):
+    return max(lo, min(hi, value))
+
+
+# korte test om de motor/poort te checken
+motorGroot.run_time(300, 300, wait=True)
 motorGroot.stop()
 
 while True:
-    motor.dc(throttle())
-    # Motor.run verwacht deg/s; schaal joystickwaarde naar snelheid
-    motorGroot.run(steering() * 30)
+    # 0..100 voor LT (links) en RT (rechts)
+    lt, rt = pad.triggers()
+    if lt > 8 or rt > 8:
+        offset_speed = 0
+
+    # basis-snelheid vanuit de triggers (rt vooruit, lt achteruit)
+    trigger_speed = int((rt - lt) * MAX_SPEED / 100)
+
+    # ingedrukte knoppen ophalen
+    pressed = pad.buttons.pressed()
+
+    # D-pad UP ingedrukt → offset loopt steeds op
+    if Button.UP in pressed:
+        offset_speed += STEP
+
+    # D-pad DOWN ingedrukt → offset loopt steeds af
+    if Button.DOWN in pressed:
+        offset_speed -= STEP
+
+    # Y = reset + vrij uitrollen
+    if Button.Y in pressed:
+        offset_speed = 0
+        motorGroot.stop()
+
+    # offset begrenzen zodat we nooit buiten bereik komen
+    offset_speed = clamp(offset_speed, -MAX_SPEED, MAX_SPEED)
+
+    # totale snelheid = triggers + offset
+    drive_speed = clamp(trigger_speed + offset_speed, -MAX_SPEED, MAX_SPEED)
+
+    # motor draaien
+    motorGroot.run(drive_speed)
+
+    # kleine delay, bepaalt ook hoe “snel” de D-pad accelereert
     wait(20)
